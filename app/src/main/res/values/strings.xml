@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">As Player</string>
+
+    <!-- Navigation -->
+    <string name="nav_videos">Videos</string>
+    <string name="nav_music">Music</string>
+    <string name="nav_folders">Folders</string>
+    <string name="nav_playlists">Playlists</string>
+    <string name="nav_settings">Settings</string>
+
+    <!-- General -->
+    <string name="search">Search media</string>
+    <string name="search_hint">Search songs, videos, artists...</string>
+    <string name="filter_all">All</string>
+    <string name="sort_by">Sort by</string>
+    <string name="sort_title">Title (A-Z)</string>
+    <string name="sort_date">Date Added</string>
+    <string name="sort_duration">Duration</string>
+    <string name="sort_size">File Size</string>
+    <string name="empty_media_title">No media found</string>
+    <string name="empty_media_desc">Your media library will appear here once files are detected on your device or loaded from online streams.</string>
+    <string name="load_sample_media">Load Sample HD Media</string>
+    <string name="refresh">Refresh Library</string>
+    <string name="details">Media Details</string>
+    <string name="share">Share</string>
+    <string name="delete">Delete</string>
+    <string name="rename">Rename</string>
+    <string name="add_to_playlist">Add to Playlist</string>
+    <string name="remove">Remove</string>
+    <string name="cancel">Cancel</string>
+    <string name="save">Save</string>
+    <string name="confirm">Confirm</string>
+
+    <!-- Permissions -->
+    <string name="permission_title">Media Access Required</string>
+    <string name="permission_desc">As Player needs access to your audio and video files to build your media library and play them seamlessly.</string>
+    <string name="grant_permission">Grant Access</string>
+    <string name="open_settings">Open Device Settings</string>
+
+    <!-- Video Player -->
+    <string name="playback_speed">Playback Speed</string>
+    <string name="aspect_ratio">Aspect Ratio</string>
+    <string name="fit_screen">Fit</string>
+    <string name="fill_screen">Fill</string>
+    <string name="zoom_screen">Zoom</string>
+    <string name="ratio_16_9">16:9</string>
+    <string name="ratio_4_3">4:3</string>
+    <string name="audio_tracks">Audio Tracks</string>
+    <string name="subtitle_tracks">Subtitles</string>
+    <string name="no_subtitles">Off</string>
+    <string name="load_external_subtitles">Load External Subtitle (.srt / .vtt)</string>
+    <string name="subtitle_delay">Subtitle Delay</string>
+    <string name="pip_enter">Picture in Picture</string>
+    <string name="lock_controls">Lock Controls</string>
+    <string name="unlock_controls">Tap to Unlock</string>
+    <string name="resume_dialog_title">Resume Playback?</string>
+    <string name="resume_dialog_desc">Resume from last watched position:</string>
+    <string name="resume_button">Resume</string>
+    <string name="restart_button">Start Over</string>
+    <string name="ab_repeat">A-B Repeat</string>
+    <string name="set_point_a">Set Point A</string>
+    <string name="set_point_b">Set Point B</string>
+    <string name="clear_ab">Clear A-B</string>
+    <string name="screenshot_captured">Screenshot saved</string>
+
+    <!-- Audio Player & Now Playing -->
+    <string name="now_playing">Now Playing</string>
+    <string name="queue">Up Next</string>
+    <string name="queue_empty">Queue is empty</string>
+    <string name="clear_queue">Clear Queue</string>
+    <string name="lyrics">Lyrics</string>
+    <string name="no_lyrics">No synced lyrics available for this track</string>
+    <string name="equalizer">Equalizer</string>
+    <string name="eq_preset_normal">Normal</string>
+    <string name="eq_preset_rock">Rock</string>
+    <string name="eq_preset_pop">Pop</string>
+    <string name="eq_preset_jazz">Jazz</string>
+    <string name="eq_preset_classical">Classical</string>
+    <string name="eq_preset_bass_boost">Bass Boosted</string>
+    <string name="bass_boost">Bass Boost</string>
+    <string name="virtualizer">3D Surround</string>
+    <string name="sleep_timer">Sleep Timer</string>
+    <string name="sleep_timer_off">Sleep timer off</string>
+    <string name="sleep_timer_active">Music stops in %d min</string>
+    <string name="timer_15m">15 Minutes</string>
+    <string name="timer_30m">30 Minutes</string>
+    <string name="timer_45m">45 Minutes</string>
+    <string name="timer_60m">60 Minutes</string>
+    <string name="timer_end_of_track">End of this track</string>
+    <string name="stop_timer">Turn Off Timer</string>
+
+    <!-- Settings -->
+    <string name="settings_theme">Appearance &amp; Theme</string>
+    <string name="theme_system">Follow System</string>
+    <string name="theme_dark">Dark Theme</string>
+    <string name="theme_light">Light Theme</string>
+    <string name="theme_amoled">AMOLED Pitch Black</string>
+    <string name="settings_playback">Playback Defaults</string>
+    <string name="auto_play_next">Auto-play next track</string>
+    <string name="background_play">Continue video in background</string>
+    <string name="resume_position">Remember last playback position</string>
+    <string name="double_tap_seek">Double tap seek duration</string>
+    <string name="settings_gestures">Controls &amp; Gestures</string>
+    <string name="gestures_brightness">Vertical swipe brightness (left)</string>
+    <string name="gestures_volume">Vertical swipe volume (right)</string>
+    <string name="gestures_seek">Horizontal swipe seek</string>
+    <string name="about">About As Player</string>
+    <string name="app_version">Version 1.0.0 (Production Release)</string>
+    <string name="privacy_policy">Privacy Policy</string>
+    <string name="clear_history">Clear Watch History</string>
+    <string name="history_cleared">Watch history cleared</string>
+</resources>

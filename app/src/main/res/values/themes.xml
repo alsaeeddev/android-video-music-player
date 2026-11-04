@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.AsPlayer" parent="android:Theme.DeviceDefault.NoActionBar">
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+        <item name="android:windowDrawsSystemBarBackgrounds">true</item>
+    </style>
+
+    <style name="Theme.AsPlayer.Splash" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">#0D0F18</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_as_player_logo</item>
+        <item name="postSplashScreenTheme">@style/Theme.AsPlayer</item>
+    </style>
+</resources>
