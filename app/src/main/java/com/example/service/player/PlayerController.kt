@@ -351,6 +351,11 @@ class PlayerController(
                 exoPlayer.playWhenReady = false
             }
             exoPlayer.setMediaItems(exoItems, startIndex, startPos)
+            // Naye media ki position/duration foran set karo. Warna seek bar purane media ki stale
+            // position (ya duration 0) dikhata hai aur play shuru hone par exact resume position par
+            // "kood" kar aata hai.
+            _currentPosition.value = if (startPos != C.TIME_UNSET) startPos else 0L
+            _duration.value = current?.durationMs?.coerceAtLeast(0L) ?: 0L
             exoPlayer.prepare()
             if (deferStart) {
                 pendingVideoStart = true

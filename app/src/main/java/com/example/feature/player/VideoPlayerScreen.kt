@@ -9,9 +9,11 @@ import android.os.Build
 import android.util.Rational
 import android.view.ViewGroup
 import android.view.WindowManager
+import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import androidx.annotation.OptIn
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
@@ -86,6 +88,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.core.app.PictureInPictureModeChangedInfo
+import androidx.core.util.Consumer
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.media3.common.Player
@@ -145,7 +149,18 @@ fun VideoPlayerScreen(
     // Back press par jab player pause hota hai to UI (play/pause icon) ko freeze rakhte hain,
     // taake exit ke dauran "play" icon ka flicker nazar na aaye.
     var leavingPlaying by remember { mutableStateOf<Boolean?>(null) }
-    val uiIsPlaying = leavingPlaying ?: (isPlaying || startPending)
+
+    // Play/Pause icon ExoPlayer ke isPlaying par nahi, "play ka intent" (playWhenReady) par chalta hai.
+    // isPlaying buffering / seek (khaas kar resume position par) ke dauran chand ms ke liye false ho jata
+    // hai, jis se icon Pause -> Play -> Pause blink karta tha.
+    var playWhenReadyState by remember { mutableStateOf(playerController.exoPlayer.playWhenReady) }
+    var playbackStateValue by remember { mutableIntStateOf(playerController.exoPlayer.playbackState) }
+    val intendedPlaying = startPending || isPlaying || (
+            playWhenReadyState &&
+                    playbackStateValue != Player.STATE_ENDED &&
+                    playbackStateValue != Player.STATE_IDLE
+            )
+    val uiIsPlaying = leavingPlaying ?: intendedPlaying
     val navigateBackOnce: () -> Unit = {
         if (leavingPlaying == null) {
             leavingPlaying = isPlaying
@@ -155,6 +170,25 @@ fun VideoPlayerScreen(
 
     val audioManager = remember { context.getSystemService(Context.AUDIO_SERVICE) as AudioManager }
 
+    // PiP state: jab PiP mode mein ho (ya PiP mein jane ki request ho chuki ho) to saara controls UI
+    // hide rehta hai, warna full-size controls chhoti mini window mein scale ho kar bohat bade nazar aate hain.
+    var isInPipMode by remember { mutableStateOf(activity?.isInPictureInPictureMode == true) }
+    var pipRequested by remember { mutableStateOf(false) }
+    val hideControlsUi = isInPipMode || pipRequested
+
+    DisposableEffect(activity) {
+        val componentActivity = activity as? ComponentActivity
+        val listener = Consumer<PictureInPictureModeChangedInfo> { info ->
+            isInPipMode = info.isInPictureInPictureMode
+            if (!info.isInPictureInPictureMode) {
+                pipRequested = false
+                controlsVisible = false
+            }
+        }
+        componentActivity?.addOnPictureInPictureModeChangedListener(listener)
+        onDispose { componentActivity?.removeOnPictureInPictureModeChangedListener(listener) }
+    }
+
     val prefs by remember {
         UserPreferencesDataStore(context).userPreferencesFlow
     }.collectAsState(initial = UserPreferences())
@@ -163,6 +197,24 @@ fun VideoPlayerScreen(
         if (!prefs.backgroundPlayVideo && currentMedia?.mediaType == MediaType.VIDEO) {
             playerController.exoPlayer.pause()
         }
+    }
+
+    // playWhenReady / playback state track karo (icon ke liye)
+    DisposableEffect(Unit) {
+        val exo = playerController.exoPlayer
+        playWhenReadyState = exo.playWhenReady
+        playbackStateValue = exo.playbackState
+        val stateListener = object : Player.Listener {
+            override fun onPlayWhenReadyChanged(playWhenReady: Boolean, reason: Int) {
+                playWhenReadyState = playWhenReady
+            }
+
+            override fun onPlaybackStateChanged(playbackState: Int) {
+                playbackStateValue = playbackState
+            }
+        }
+        exo.addListener(stateListener)
+        onDispose { exo.removeListener(stateListener) }
     }
 
     // Keep screen on while video player is open
@@ -334,7 +386,7 @@ fun VideoPlayerScreen(
         )
 
         // Gesture Feedback Overlays (Center)
-        brightnessFeedback?.let { pct ->
+        brightnessFeedback?.takeIf { !hideControlsUi }?.let { pct ->
             GestureIndicatorCard(
                 icon = Icons.Default.BrightnessMedium,
                 label = "Brightness",
@@ -343,7 +395,7 @@ fun VideoPlayerScreen(
             )
         }
 
-        volumeFeedback?.let { pct ->
+        volumeFeedback?.takeIf { !hideControlsUi }?.let { pct ->
             GestureIndicatorCard(
                 icon = Icons.Default.VolumeUp,
                 label = "Volume",
@@ -352,7 +404,7 @@ fun VideoPlayerScreen(
             )
         }
 
-        seekFeedback?.let { label ->
+        seekFeedback?.takeIf { !hideControlsUi }?.let { label ->
             Surface(
                 modifier = Modifier.align(Alignment.Center),
                 shape = RoundedCornerShape(16.dp),
@@ -369,7 +421,7 @@ fun VideoPlayerScreen(
         }
 
         // Lock button (always visible when locked or when controls are visible)
-        if (controlsVisible || isLocked) {
+        if ((controlsVisible || isLocked) && !hideControlsUi) {
             IconButton(
                 onClick = { isLocked = !isLocked },
                 modifier = Modifier
@@ -389,9 +441,10 @@ fun VideoPlayerScreen(
 
         // Full Controls Overlay (Top Bar, Center Play/Pause, Bottom Seek & Bar)
         AnimatedVisibility(
-            visible = controlsVisible && !isLocked,
+            visible = controlsVisible && !isLocked && !hideControlsUi,
             enter = fadeIn(),
-            exit = fadeOut(),
+            // PiP mein jate waqt fade-out animation nahi, foran hide (warna kuch ms bade controls nazar aate hain)
+            exit = if (hideControlsUi) ExitTransition.None else fadeOut(),
             modifier = Modifier.fillMaxSize()
         ) {
             Box(
@@ -492,10 +545,20 @@ fun VideoPlayerScreen(
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                         IconButton(
                             onClick = {
+                                // Pehle UI foran hide karo, phir PiP mein jao
+                                pipRequested = true
+                                controlsVisible = false
+                                showSpeedMenu = false
+                                showAspectRatioMenu = false
                                 val params = PictureInPictureParams.Builder()
                                     .setAspectRatio(Rational(16, 9))
                                     .build()
-                                activity?.enterPictureInPictureMode(params)
+                                val entered = try {
+                                    activity?.enterPictureInPictureMode(params) == true
+                                } catch (e: IllegalStateException) {
+                                    false
+                                }
+                                if (!entered) pipRequested = false
                             }
                         ) {
                             Icon(
