@@ -149,7 +149,18 @@ fun VideoPlayerScreen(
     // Back press par jab player pause hota hai to UI (play/pause icon) ko freeze rakhte hain,
     // taake exit ke dauran "play" icon ka flicker nazar na aaye.
     var leavingPlaying by remember { mutableStateOf<Boolean?>(null) }
-    val uiIsPlaying = leavingPlaying ?: (isPlaying || startPending)
+
+    // Play/Pause icon ExoPlayer ke isPlaying par nahi, "play ka intent" (playWhenReady) par chalta hai.
+    // isPlaying buffering / seek (khaas kar resume position par) ke dauran chand ms ke liye false ho jata
+    // hai, jis se icon Pause -> Play -> Pause blink karta tha.
+    var playWhenReadyState by remember { mutableStateOf(playerController.exoPlayer.playWhenReady) }
+    var playbackStateValue by remember { mutableIntStateOf(playerController.exoPlayer.playbackState) }
+    val intendedPlaying = startPending || isPlaying || (
+            playWhenReadyState &&
+                    playbackStateValue != Player.STATE_ENDED &&
+                    playbackStateValue != Player.STATE_IDLE
+            )
+    val uiIsPlaying = leavingPlaying ?: intendedPlaying
     val navigateBackOnce: () -> Unit = {
         if (leavingPlaying == null) {
             leavingPlaying = isPlaying
@@ -186,6 +197,24 @@ fun VideoPlayerScreen(
         if (!prefs.backgroundPlayVideo && currentMedia?.mediaType == MediaType.VIDEO) {
             playerController.exoPlayer.pause()
         }
+    }
+
+    // playWhenReady / playback state track karo (icon ke liye)
+    DisposableEffect(Unit) {
+        val exo = playerController.exoPlayer
+        playWhenReadyState = exo.playWhenReady
+        playbackStateValue = exo.playbackState
+        val stateListener = object : Player.Listener {
+            override fun onPlayWhenReadyChanged(playWhenReady: Boolean, reason: Int) {
+                playWhenReadyState = playWhenReady
+            }
+
+            override fun onPlaybackStateChanged(playbackState: Int) {
+                playbackStateValue = playbackState
+            }
+        }
+        exo.addListener(stateListener)
+        onDispose { exo.removeListener(stateListener) }
     }
 
     // Keep screen on while video player is open
